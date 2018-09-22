@@ -27,7 +27,7 @@ def debug_dialog(msg, exception=None):
         dlg.ShowModal()
         dlg.Destroy()
 
-class shielding_based_layer(pcbnew.ActionPlugin):
+class ShieldingHashGenerator(pcbnew.ActionPlugin):
     """
     A script to create a shielding based on boundarybox on other layer
     """
@@ -221,7 +221,7 @@ class shielding_based_layer(pcbnew.ActionPlugin):
         else:
             wx.LogMessage('Cancelled operation')
 
-shielding_based_layer().register()
+#shielding_based_layer().register()
 
 
 shielding_based_layer_ico_b64_data =\
