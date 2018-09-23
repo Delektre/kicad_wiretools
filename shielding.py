@@ -32,9 +32,9 @@ def debug_dialog(msg, exception=None):
 
 class HashShieldGenerator(pcbnew.ActionPlugin):
     def defaults(self):
-        self.name = "Add current date on PCB"
+        self.name = "Generate Hash Shielding"
         self.category = "Modify PCB"
-        self.description = "Automatically add date on existing PCB"
+        self.description = "Generate hash shielding for PCB"
 
         self._board = pcbnew.GetBoard()
         bbox = pcbnew.GetBoard().GetBoundingBox()
@@ -363,7 +363,7 @@ class HashShieldGenerator(pcbnew.ActionPlugin):
     def draw_shielding(self, width_mm=DEFAULT_LINE_WIDTH_MM, layer=DEFAULT_LAYER_TARGET):
 
         if self.flag_delete_old:
-            drawings = [draw for draw in self._board.DrawingsList() if (draw.GetLayer() == layer and draw.GetType() == 0)]
+            drawings = [draw for draw in self._board.DrawingsList() if draw.GetClass() == 'DRAWSEGMENT' and draw.GetLayer() == layer and draw.GetType() == 0]
             for draw in drawings:
                 self._board.Remove(draw)
 
