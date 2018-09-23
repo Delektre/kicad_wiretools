@@ -1,6 +1,8 @@
 import pcbnew
 
-print("Initializing kicad_wiretools version {}".format(1.0))
+__version__ = "0.0.2"
+
+print("Initializing kicad_wiretools version {}".format(__version__))
 
 #import wiretools
 import shielding
@@ -9,6 +11,6 @@ import shielding
 
 #import wiretools_dumper
 
-shielding.ShieldingHashGenerator.register()
+shielding.HashShieldGenerator().register()
 
 print("done adding kicad_wiretools")
