@@ -361,22 +361,19 @@ class HashShieldGenerator(pcbnew.ActionPlugin):
             #print "ent {}, lines drawn: {}".format(ent, lines_drawn)
 
     def draw_shielding(self, width_mm=DEFAULT_LINE_WIDTH_MM, layer=DEFAULT_LAYER_TARGET):
-
         if self.flag_delete_old:
             drawings = [draw for draw in self._board.DrawingsList() if draw.GetClass() == 'DRAWSEGMENT' and draw.GetLayer() == layer and draw.GetType() == 0]
             for draw in drawings:
-                self._board.Remove(draw)
+                self._board.Remove(draw
+        self.draw_outline_and_hash(pcbnew.FromMM(width_mm), layer)
 
-        layertable = {}
+        pcbnew.Refresh()
 
+    def draw_layer_list(self, layer=DEFAULT_LAYER_TARGET):
         numlayers = pcbnew.PCB_LAYER_ID_COUNT
         for ind in range(numlayers):
-            layertable[ind] = self._board.GetLayerName(ind)
             msg = "{} {}".format(ind, self._board.GetLayerName(ind))
-            print msg
             self.draw_text(pcbnew.FromMM(30), pcbnew.FromMM(100 + ind*8), msg)
-
-        self.draw_outline_and_hash(pcbnew.FromMM(width_mm), layer)
         pcbnew.Refresh()
 
     def draw_line(self, pos_x1, pos_y1, pos_x2, pos_y2, rx1, ry1, rx2, ry2, width, layer_id):
