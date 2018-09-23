@@ -1,6 +1,6 @@
 import pcbnew
 
-__version__ = "0.0.2"
+__version__ = "0.2.0"
 
 print("Initializing kicad_wiretools version {}".format(__version__))
 
