@@ -364,7 +364,8 @@ class HashShieldGenerator(pcbnew.ActionPlugin):
         if self.flag_delete_old:
             drawings = [draw for draw in self._board.DrawingsList() if draw.GetClass() == 'DRAWSEGMENT' and draw.GetLayer() == layer and draw.GetType() == 0]
             for draw in drawings:
-                self._board.Remove(draw
+                self._board.Remove(draw)
+        
         self.draw_outline_and_hash(pcbnew.FromMM(width_mm), layer)
 
         pcbnew.Refresh()
