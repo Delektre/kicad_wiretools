@@ -1,10 +1,8 @@
-import pcb
 import pcbnew
-import wx
-import wx.aui
 
 import inspect
 import os
+
 filename = inspect.getframeinfo(inspect.currentframe()).filename
 path = os.path.dirname(os.path.abspath(filename))
 
@@ -15,6 +13,9 @@ SCALE = 1000000
 if hasattr(pcbnew, "LAYER_ID_COUNT"):
     pcbnew.PCB_LAYER_ID_COUNT = pcbnew.LAYER_ID_COUNT
 
+if not board:
+    Exception("Unable to get board handle")
+    
 def coordsFromPolySet(ps):
     str = ps.Format()
     lines = str.split('\n')
@@ -35,7 +36,7 @@ def padsForNet(net):
 
 # from collections import defaultdict
 
-designsettings = board.GetDesignSettings()
+#ds = board.GetDesignSettings()
 
 def pan_and_zoom(x, y, width, height):
     xx = pcbnew.FromMM(x)
@@ -44,33 +45,45 @@ def pan_and_zoom(x, y, width, height):
     hh = pcbnew.FromMM(height)
     pcbnew.WindowZoom(xx, yy, ww, hh)
 
-def findPcbnewWindow():
-    windows = wx.GetTopLevelWindows()
-    pcbnew = [w for w in windows if w.GetTitle()[0:6] == "Pcbnew"]
-    if len(pcbnew) != 1:
-        raise Exception("Cannot find pcbnew window from title matching")
-    return pcbnew[0]
+def dump_board_boundingbox():
+    board = pcbnew.GetBoard()
+    boardbox = board.ComputeBoundingBox()
+    boardx1 = boardbox.GetX()
+    boardy1 = boardbox.GetY()
+    boardwidth = boardbox.GetWidth()
+    boardheight = boardbox.GetHeight()
+    print("this board is at position {},{} {} widde and {} high".format(boardx1, boardy1, boardwidth, boardheight))
+    return (boardx1, boardy1, boardwidth, boardheight)
+    
+def get_layertable():
+    board = pcbnew.GetBoard()
+    layertable = {}
+    numlayers = pcbnew.LAYER_ID_COUNT
+    for i in range(numlayers):
+        layertable[i] = board.GetLayerName(i)
+        print("{} {}".format(i, board.GetLayerName(i)))
+    return layertable
+    
+def dump_net_tracks(net):
+    board = pcbnew.GetBoard()
+    clktracks = board.TracksInNet(clknet.GetNet())
+    for track in clktracks:
+        print("{},{} -> {},{} width {} layer {}".format(track.GetStart().x/SCALE, track.GetStart().y/SCALE, track.GetEnd().x/SCALE, track.GetEnd().y/SCALE, track.GetWidth()/SCALE, layertable[track.GetLayer()]))
+
+#tracks = board.GetTracks()
+#for track in tracks:
+#    print("track: {}".format(track))
 
 
-# add toolbar buttons
-pcbwin = findPcbnewWindow()
+class Wiretools(pcbnew.ActionPlugin):
+    def defaults(self):
+        self.name = "Wiretools utility"
+        self.category = "Show Info from PCB"
+        self.description = "Generate information from PCB"
 
-top_tb = pcbwin.FindWindowById(pcbnew.ID_H_TOOLBAR)
-com_tb = pcbwin.FindWindowById(pcbnew.ID_V_TOOLBAR)
-opt_tb = pcbwin.FindWindowById(pcbnew.ID_OPT_TOOLBAR)
+    def _prepare_report(self):
+        self.stream = None
 
-def WireClearCallback(event):
-    print("Got a click on my new button {}".format(str(event)))
-    pcbnew.Refresh()
-
-bitmap = wx.Bitmap(path + '/icons/26x26/wiretools.png', wx.BITMAP_TYPE_PNG)
-# bitmap sizes:
-# SMALL - for menus     - 16 x 16
-# MID   - for toolbars  - 26 x 26
-# BIG   - for programs  - 48 x 48
-
-itemid = wx.NewId()
-
-com_tb.AddTool(itemid, "wireclearbutton", bm, "Wire Clear", wx.ITEM_NORMAL)
-com_tb.Bind(ex.EVT_TOOL, WireClearCallback, id=itemid)
-com_tb.Realize()
+    def Run(self):
+        self._board = pcbnew.GetBoard()
+        
