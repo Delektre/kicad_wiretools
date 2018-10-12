@@ -3,6 +3,10 @@ Wire toolset for KiCad
 
 * Shielding tool for creating web of shielding
 
+## Code of conduct
+
+New features should be created in new branch, so that 'master' branch is always stable. When new features are tested, they can be joined to master branch.
+
 ## TODO
 
 * [ ] Automatic naming of nets
