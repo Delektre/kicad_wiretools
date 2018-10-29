@@ -65,6 +65,8 @@ class HashShieldGenerator(pcbnew.ActionPlugin):
         if not self._board:
             raise Exception("Board missing!")
 
+        print "find_bounding_box( {} )".format(layerid)
+        
         for draw in self._board.DrawingsList():
             # Handle the board outline segments
             if draw.GetClass() == 'DRAWSEGMENT' and draw.GetLayer() == layerid:
@@ -83,9 +85,12 @@ class HashShieldGenerator(pcbnew.ActionPlugin):
 
 
     def Run(self):
+        print "-------------------------"
+        print "Starting plugin: shielding"
         pcb = pcbnew.GetBoard()
         self._board = pcb
         self.find_bounding_box()
+        print "got bounding box"
         for draw in pcb.DrawingsList():
             if draw.GetClass() == 'PTEXT':
                 txt = re.sub("\$date\$ [0-9]{4}-[0-9]{2}-[0-9]{2}", "$date$", draw.GetText())
@@ -93,31 +98,33 @@ class HashShieldGenerator(pcbnew.ActionPlugin):
                     draw.SetText("$date$ %s"%datetime.date.today())
             #else:
                 #print("Found object: ", draw.GetClass())
-            elif draw.GetClass() == 'DRAWSEGMENT':
-                if draw.GetType() == 0:
-                    if draw.GetStart().x < self.minx:
-                        self.minx = draw.GetStart().x
-                    if draw.GetStart().y < self.miny:
-                        self.miny = draw.GetStart().y
-                    if draw.GetEnd().x > self.maxx:
-                        self.maxx = draw.GetEnd().x
-                    if draw.GetEnd().y > self.maxy:
-                        self.maxy = draw.GetEnd().y
-                else:
-                    bbox = draw.GetBoundingBox()
-                    print "[{}, {}, {}, {}] type={}".format(
-                        bbox.GetLeft(),
-                        bbox.GetTop(),
-                        bbox.GetRight(),
-                        bbox.GetBottom(),
-                        draw.GetType())
-                    msg = "Found element type " + str(draw.GetType()) + " with boundingbox: (" + bbox.GetLeft() + ", " + bbox.GetTop() + " -> " + bbox.GetRight() + ", " + bbox.GetBottom() + ")"
-                    print msg
-                    debug_dialog(msg)
+            #elif draw.GetClass() == 'DRAWSEGMENT':
+            #    if draw.GetType() == 0:
+            #        if draw.GetStart().x < self.minx:
+            #            self.minx = draw.GetStart().x
+            #        if draw.GetStart().y < self.miny:
+            #            self.miny = draw.GetStart().y
+            #        if draw.GetEnd().x > self.maxx:
+            #            self.maxx = draw.GetEnd().x
+            #        if draw.GetEnd().y > self.maxy:
+            #            self.maxy = draw.GetEnd().y
+            #    else:
+            #        bbox = draw.GetBoundingBox()
+            #        print "[{}, {}, {}, {}] type={}".format(
+            #            bbox.GetLeft(),
+            #            bbox.GetTop(),
+            #            bbox.GetRight(),
+            #            bbox.GetBottom(),
+            #            draw.GetType())
+            #        msg = "Found element type " + str(draw.GetType()) + " with boundingbox: (" + bbox.GetLeft() + ", " + bbox.GetTop() + " -> " + bbox.GetRight() + ", " + bbox.GetBottom() + ")"
+            #        print msg
+            #        debug_dialog(msg)
             else:
                 print "Found: {}".format(draw.GetClass())
 
-        box = " (" + str(pcbnew.ToMM(self.minx)) + ", " + str(pcbnew.ToMM(self.miny)) + " -> " + str(pcbnew.ToMM(self.maxx)) + ", " + str(pcbnew.ToMM(self.maxy)) + ")"
+            box = " (" + str(self.minx) + ", " + str(self.miny) + " -> " + str(self.maxx) + ", " + str(self.maxy) + ")"
+            print "Bounding box: "
+            print box
 
         # show dialog and ask stuff
 
@@ -150,43 +157,46 @@ class HashShieldGenerator(pcbnew.ActionPlugin):
                     #layertable[ind] = self._board.GetLayerName(ind)
                     layertable.append(pcb.GetLayerName(ind))
                     self.layertable[pcb.GetLayerName(ind)] = ind
-
+                # -----------------------------------------
                 self.combo_source = wx.ComboBox(self.panel, choices=layertable)
                 self.combo_source.SetSelection(self.source_layer)
-                self.combo_source.Bind(wx.EVT_COMBOBOX, self.onComboSource)
-
-                self.title_source = wx.StaticText(self.panel, label="Souce layer")
-
+                self.combo_source.Bind(wx.EVT_COMBOBOX, self.readvalues)
+                self.title_source = wx.StaticText(self.panel, label="Source layer")
+                # -----------------------------------------
                 self.combo_target = wx.ComboBox(self.panel, choices=layertable)
                 self.combo_target.SetSelection(self.target_layer)
-                self.combo_target.Bind(wx.EVT_COMBOBOX, self.onComboTarget)
-
+                self.combo_target.Bind(wx.EVT_COMBOBOX, self.readvalues)
                 self.title_target = wx.StaticText(self.panel, label="Target layer")
-
-                self.spin_angle = wx.TextCtrl(self.panel, value=str(self.angle), style=wx.TE_READONLY)
+                # -----------------------------------------
                 self.title_angle = wx.StaticText(self.panel, label="Angle")
-
+                                
+                self.spin_angle = wx.TextCtrl(self.panel, value=str(self.angle), style=wx.TE_READONLY)
+                self.spin_angle.Bind(wx.EVT_TEXT, self.readvalues)
+                # -----------------------------------------
                 self.title_offset_left = wx.StaticText(self.panel, label="Offset left [mm]")
                 self.text_offset_left = wx.TextCtrl(self.panel, value=str(self.offset_left))
-                self.text_offset_left.Bind(wx.EVT_TEXT, self.onTextChange)
+                self.text_offset_left.Bind(wx.EVT_TEXT, self.readvalues)
+                # -----------------------------------------                
                 self.title_offset_right = wx.StaticText(self.panel, label="Offset right [mm]")
                 self.text_offset_right = wx.TextCtrl(self.panel, value=str(self.offset_right))
-                self.text_offset_right.Bind(wx.EVT_TEXT, self.onTextChange)
+                self.text_offset_right.Bind(wx.EVT_TEXT, self.readvalues)
+                # -----------------------------------------
                 self.title_offset_top = wx.StaticText(self.panel, label="Offset top [mm]")
                 self.text_offset_top = wx.TextCtrl(self.panel, value=str(self.offset_top))
-                self.text_offset_top.Bind(wx.EVT_TEXT, self.onTextChange)
+                self.text_offset_top.Bind(wx.EVT_TEXT, self.readvalues)
+                # -----------------------------------------
                 self.title_offset_bottom = wx.StaticText(self.panel, label="Offset bottom [mm]")
                 self.text_offset_bottom = wx.TextCtrl(self.panel, value=str(self.offset_bottom))
-                self.text_offset_bottom.Bind(wx.EVT_TEXT, self.onTextChange)
+                self.text_offset_bottom.Bind(wx.EVT_TEXT, self.readvalues)
+                # -----------------------------------------
                 self.title_linewidth = wx.StaticText(self.panel, label="Line width [mm]")
-                self.title_pitch = wx.StaticText(self.panel, label="Pitch [mm]")
-
-                self.spin_angle.Bind(wx.EVT_TEXT, self.onTextChange)
                 self.text_linewidth = wx.TextCtrl(self.panel, value=str(self.lineWidth))
-                self.text_linewidth.Bind(wx.EVT_TEXT, self.onTextChange)
+                self.text_linewidth.Bind(wx.EVT_TEXT, self.readvalues)
+                # -----------------------------------------
+                self.title_pitch = wx.StaticText(self.panel, label="Pitch [mm]")
                 self.text_pitch = wx.TextCtrl(self.panel, value=str(self.pitch))
-                self.text_pitch.Bind(wx.EVT_TEXT, self.onTextChange)
-
+                self.text_pitch.Bind(wx.EVT_TEXT, self.readvalues)
+                # -----------------------------------------
                 # set sizer
                 self.window_sizer = wx.BoxSizer()
                 self.window_sizer.Add(self.panel, 1, wx.ALL | wx.EXPAND)
@@ -199,9 +209,9 @@ class HashShieldGenerator(pcbnew.ActionPlugin):
 
                 self.Bind(wx.EVT_CLOSE, self.onButtonCancel)
 
-                self.title_delete_old = wx.StaticText(self.panel, label="Delete old?")
+                self.title_delete_old = wx.StaticText(self.panel, label="Delete old values?")
                 self.checkbox_delete_old = wx.CheckBox(self.panel)
-                self.checkbox_delete_old.Bind(wx.EVT_TEXT, self.onCheckBox)
+                self.checkbox_delete_old.Bind(wx.EVT_TEXT, self.readvalues)
 
                 # set sizer for panel content
                 self.sizer = wx.GridBagSizer(10, 0)
@@ -228,45 +238,65 @@ class HashShieldGenerator(pcbnew.ActionPlugin):
                 self.sizer.Add(self.button_run, (10, 0))
                 self.sizer.Add(self.button_cancel, (10, 1))
 
-
                 # border for nice look
                 self.border = wx.BoxSizer()
                 self.border.Add(self.sizer, 1, wx.ALL | wx.EXPAND, 5)
                 self.panel.SetSizerAndFit(self.border)
                 self.SetSizerAndFit(self.window_sizer)
 
-            def onCheckBox(self, event):
-                self.delete_old = self.checkbox_delete_old.GetValue()
+                print "Dialog init completed."
+
+            #def onCheckBox(self, event):
+            #    #self.delete_old = self.checkbox_delete_old.GetValue()
+            #    self.readvalues()
 
             def onButtonRun(self, event):
+                print "--onButtonRun()"
                 self.action_go = True
                 event.Skip()
-                self.onTextChange(None)
+                self.readvalues()
+                print "--returned from readvalues()"
                 self.Close()
+                print "done self.Close()"
 
-            def onButtonCancel(self, event):
-                event.Skip()
-                self.Close()
-
-            def onComboSource(self, event):
-                self.source_layer = self.combo_source.GetSelection()
-
-            def onComboTarget(self, event):
-                self.target_layer = self.combo_target.GetSelection()
-
-            def onTextChange(self, event):
+            def readvalues(self, event=None):
+                print "--readvalues()"
                 self.lineWidth = self.text_linewidth.GetValue()
                 self.pitch = self.text_pitch.GetValue()
                 self.angle = self.spin_angle.GetValue()
                 self.offset_left = self.text_offset_left.GetValue()
                 self.offset_right = self.text_offset_right.GetValue()
+                print "get offset-top"
                 self.offset_top = self.text_offset_top.GetValue()
+                print "get offset-bottom"
                 self.offset_bottom = self.text_offset_bottom.GetValue()
+                print "get checkbox value"
+                self.delete_old = self.checkbox_delete_old.GetValue()
+                print "get source layer"
+                self.source_layer = self.combo_source.GetSelection()
+                print "get target layer"
+                self.target_layer = self.combo_target.GetSelection()
+                
+            def onButtonCancel(self, event):
+                event.Skip()
+                self.Close()
 
+            #def onComboSource(self, event):
+            #    self.readvalues()
+
+            #def onComboTarget(self, event):
+            #    self.readvalues()
+
+            #def onTextChange(self, event):
+            #    self.readvalues()
+    
         frame = DisplayDialog(None)
         frame.Center()
         frame.ShowModal()
-        # get the values
+
+        print "-> Dialog closed"
+        
+        # get the values        
         if frame.action_go:
             self.layer_source = int(frame.source_layer)
             self.layer_target = int(frame.target_layer)
