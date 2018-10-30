@@ -23,3 +23,4 @@ New features should be created in new branch, so that 'master' branch is always 
   * cut traces
   * delete traces
   * rename nets
+* [x] Free angle selection for hash
