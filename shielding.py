@@ -1,7 +1,5 @@
 # Copyright (c) 2018 Tommi Rintala, New Cable Corporation Ltd.
 
-# Copyright (c) 2018 Tommi Rintala, New Cable Corporation Ltd.
-
 import re
 import datetime
 import traceback
