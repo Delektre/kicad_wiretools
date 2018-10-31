@@ -29,4 +29,5 @@ New features should be created in new branch, so that 'master' branch is always 
 ** Shielding
 
   * [x] Free angle selection for hash
-  * [ ] Calculate the procentual coverage of shielding
+  * [x] Calculate the procentual coverage of shielding
+

@@ -179,6 +179,9 @@ class HashShieldGenerator(pcbnew.ActionPlugin):
                 self.text_pitch = wx.TextCtrl(self.panel, value=str(self.pitch))
                 self.text_pitch.Bind(wx.EVT_TEXT, self.readvalues)
                 # -----------------------------------------
+                self.title_coverage = wx.StaticText(self.panel, label="Coverage %")
+                self.text_coverage = wx.StaticText(self.panel, label="-")
+                # -----------------------------------------
                 # set sizer
                 self.window_sizer = wx.BoxSizer()
                 self.window_sizer.Add(self.panel, 1, wx.ALL | wx.EXPAND)
@@ -208,18 +211,20 @@ class HashShieldGenerator(pcbnew.ActionPlugin):
                 self.sizer.Add(self.text_linewidth, (3, 1))
                 self.sizer.Add(self.title_pitch, (4, 0))
                 self.sizer.Add(self.text_pitch, (4, 1))
-                self.sizer.Add(self.title_angle, (5, 0))
-                self.sizer.Add(self.spin_angle, (5, 1))
-                self.sizer.Add(self.title_offset_left, (6, 0))
-                self.sizer.Add(self.text_offset_left, (6, 1))
-                self.sizer.Add(self.title_offset_right, (7, 0))
-                self.sizer.Add(self.text_offset_right, (7, 1))
-                self.sizer.Add(self.title_offset_top, (8, 0))
-                self.sizer.Add(self.text_offset_top, (8, 1))
-                self.sizer.Add(self.title_offset_bottom, (9, 0))
-                self.sizer.Add(self.text_offset_bottom, (9, 1))
-                self.sizer.Add(self.button_run, (10, 0))
-                self.sizer.Add(self.button_cancel, (10, 1))
+                self.sizer.Add(self.title_coverage, (5, 0))
+                self.sizer.Add(self.text_coverage, (5, 1))
+                self.sizer.Add(self.title_angle, (6, 0))
+                self.sizer.Add(self.spin_angle, (6, 1))
+                self.sizer.Add(self.title_offset_left, (7, 0))
+                self.sizer.Add(self.text_offset_left, (7, 1))
+                self.sizer.Add(self.title_offset_right, (8, 0))
+                self.sizer.Add(self.text_offset_right, (8, 1))
+                self.sizer.Add(self.title_offset_top, (9, 0))
+                self.sizer.Add(self.text_offset_top, (9, 1))
+                self.sizer.Add(self.title_offset_bottom, (10, 0))
+                self.sizer.Add(self.text_offset_bottom, (10, 1))
+                self.sizer.Add(self.button_run, (11, 0))
+                self.sizer.Add(self.button_cancel, (11, 1))
 
                 # border for nice look
                 self.border = wx.BoxSizer()
@@ -243,6 +248,14 @@ class HashShieldGenerator(pcbnew.ActionPlugin):
                 print "--readvalues()"
                 self.line_width = self.text_linewidth.GetValue()
                 self.pitch = self.text_pitch.GetValue()
+                if self.line_width and self.pitch:
+                    pitch = float(self.pitch)
+                    width = float(self.line_width)
+                    if pitch > width and pitch > 0 and width > 0 and pitch - width > 0:
+                        coverage = 100.0 * pow((pitch - width), 2) / pow(pitch, 2)
+                        self.text_coverage.SetLabel(str('{0:.1f}'.format(coverage)))
+                    else:
+                        self.text_coverage.SetLabel('-')
                 self.angle = self.spin_angle.GetValue()
                 self.offset_left = self.text_offset_left.GetValue()
                 self.offset_right = self.text_offset_right.GetValue()
