@@ -9,6 +9,8 @@ New features should be created in new branch, so that 'master' branch is always 
 
 ## TODO
 
+** Wire & simulation tools
+
 * [ ] Automatic naming of nets
 * [ ] Trace length for each net
 * [ ] Trace resistance, sum of (piecewise length * resistance); for each net
@@ -23,4 +25,8 @@ New features should be created in new branch, so that 'master' branch is always 
   * cut traces
   * delete traces
   * rename nets
-* [x] Free angle selection for hash
+  
+** Shielding
+
+  * [x] Free angle selection for hash
+  * [ ] Calculate the procentual coverage of shielding
