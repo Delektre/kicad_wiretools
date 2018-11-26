@@ -5,7 +5,7 @@ __version__ = "0.2.3"
 print("Initializing kicad_wiretools version {}".format(__version__))
 
 #import wiretools
-import shielding
+from . import shielding
 
 #import module_loader
 
@@ -13,7 +13,13 @@ import shielding
 print("Register shielding tools")
 shielding.HashShieldGenerator().register()
 
-print("Register Wiretools")
-wiretools.WireTools().register()
+#print("Register Wiretools")
+#wiretools.WireTools().register()
 
-print("done adding kicad_wiretools")
+#print("done adding kicad_wiretools")
+
+from . import traceinfo
+
+print("Register TraceInfo tools")
+
+traceinfo.TraceTools().register()
