@@ -12,8 +12,6 @@ New features should be created in new branch, so that 'master' branch is always 
 ** Wire & simulation tools
 
 * [ ] Automatic naming of nets
-* [ ] Trace length for each net
-* [ ] Trace resistance, sum of (piecewise length * resistance); for each net
 * [ ] Frequency behaviour for each net; Resistance, impedance, ...
 * [ ] Damping per net
 * [ ] Trace-trace capacitance -> damping
@@ -30,6 +28,9 @@ New features should be created in new branch, so that 'master' branch is always 
   * [x] Trace length per net
   * [ ] Trace inductance per net
   * [ ] Trace impedance
+  * [ ] Power loss per trace
+  * [ ] IPC 2221 maximum current per trace I = K * dT^0.44 * (W*H)^0.725; K=[0.024, 0.048]
+  * [ ] Trace comparisation
   
 ** Shielding
 
