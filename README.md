@@ -25,6 +25,11 @@ New features should be created in new branch, so that 'master' branch is always 
   * cut traces
   * delete traces
   * rename nets
+* [ ] Calculations
+  * [ ] Voltage drop
+  * [x] Trace length per net
+  * [ ] Trace inductance per net
+  * [ ] Trace impedance
   
 ** Shielding
 
