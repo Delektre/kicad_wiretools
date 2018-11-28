@@ -1,3 +1,9 @@
+0.2.4 - 2018-11-28
+------------------
+
+* Tracelength calculation
+* Trace maximum current calculation according to IPC 2223
+* Bugfixes
 
 0.2.3 - 2018-10-31
 ------------------
