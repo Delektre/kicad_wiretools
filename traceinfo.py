@@ -1,6 +1,6 @@
 # Copyright (c) 2018 Tommi Rintala, New Cable Corporation Ltd
 
-import sys
+#import sys
 from math import sqrt, log, exp
 
 import wx
@@ -16,7 +16,7 @@ import pcbnew
 #FromUnits = FromMM
 
 RHO_CU = 1.72e-8  # Copper resistivity
-CU_THICK = 35e-6  # Board thickness
+CU_THICK = 18e-6  # Board thickness
 MAX_TEMP = 20     # maximum temperature rise (degrees Celcius)
 
 def format_number(inputvalue, dec=3):
@@ -93,7 +93,7 @@ def calculate_length(point1, point2):
     return sqrt(pow(pcbnew.ToMM(point1.y)-pcbnew.ToMM(point2.y), 2)
                 + pow(pcbnew.ToMM(point1.x)-pcbnew.ToMM(point2.x), 2))
 
-def traceinfo(cu_thick=CU_THICK):
+def traceinfo(cu_thick=CU_THICK, internal_layer=True):
     resistance = {0:0}
     inductance = {0:0}
     #maxvoltage = {0:999999}
@@ -102,6 +102,7 @@ def traceinfo(cu_thick=CU_THICK):
     powerloss = {0:0}
     netnames = {0:u'default'}
     lengths = {0:0}
+
     for trace in pcbnew.GetBoard().GetTrackWidthList():
         print("trace width: " + str(trace))
         for item in pcbnew.GetBoard().GetTracks():
@@ -156,7 +157,7 @@ def traceinfo(cu_thick=CU_THICK):
                 voltagedrop[net_id] += external_voltage
                 powerloss[net_id] += external_voltage * cable_current
                 #inductance[net_id] += ii
-                maxcurr = calculate_max_current(width, cu_thick, 20, True)
+                maxcurr = calculate_max_current(width, cu_thick, 20, internal_layer)
                 maxcurrent[net_id] = min(maxcurr, maxcurrent[net_id])
 
     for net in resistance:
@@ -193,7 +194,7 @@ class TraceInfoGenerator(pcbnew.ActionPlugin):
 
                 #pcb = pcbnew.GetBoard()
                 #nets = pcb.GetNets()
-                res, ind, pwr_loss, voltage_loss, max_current, net_names, length = traceinfo()
+                res, ind, pwr_loss, voltage_loss, max_current, net_names, length = traceinfo(CU_THICK, True)
 
                 window_sizer = wx.BoxSizer()
                 window_sizer.Add(panel, 1, wx.ALL | wx.EXPAND)
@@ -203,9 +204,9 @@ class TraceInfoGenerator(pcbnew.ActionPlugin):
                 #sizer = wx.BoxSizer(wx.VERTICAL)
                 sizer.Add(wx.StaticText(panel, label="Net#"), border=4, pos=(0, 0))
                 sizer.Add(wx.StaticText(panel, label="Name"), border=4, pos=(0, 1))
-                sizer.Add(wx.StaticText(panel, label="Length"), border=4, pos=(0, 2))
-                sizer.Add(wx.StaticText(panel, label="Resistance [ohm]"), border=4, pos=(0, 3))
-                sizer.Add(wx.StaticText(panel, label="Inductance []"), border=4, pos=(0, 4))
+                sizer.Add(wx.StaticText(panel, label="Length [mm]"), border=4, pos=(0, 2))
+                sizer.Add(wx.StaticText(panel, label="Resistance [Ohm]"), border=4, pos=(0, 3))
+                sizer.Add(wx.StaticText(panel, label="Inductance [H]"), border=4, pos=(0, 4))
                 sizer.Add(wx.StaticText(panel, label="Power loss [W]"), border=4, pos=(0, 5))
                 sizer.Add(wx.StaticText(panel, label="Voltage loss [V]"), border=4, pos=(0, 6))
                 sizer.Add(wx.StaticText(panel, label="Max Current [A]"), border=4, pos=(0, 7))
@@ -222,12 +223,12 @@ class TraceInfoGenerator(pcbnew.ActionPlugin):
                 for net in res:
                     self.lb_net[row] = wx.StaticText(panel, label=str(net))
                     self.lb_name[row] = wx.StaticText(panel, label=str(net_names[net]))
-                    self.lb_len[row] = wx.StaticText(panel, label=str("%.3e"%(length[net])))
-                    self.lb_res[row] = wx.StaticText(panel, label=str("%.2e"%(res[net])))
-                    self.lb_ind[row] = wx.StaticText(panel, label=str("%.2e"%(ind[net])))
-                    self.lb_pwr[row] = wx.StaticText(panel, label=str("%.2e"%(pwr_loss[net])))
-                    self.lb_vdo[row] = wx.StaticText(panel, label=str("%.2e"%(voltage_loss[net])))
-                    self.lb_max[row] = wx.StaticText(panel, label=str("%.2e"%(max_current[net])))
+                    self.lb_len[row] = wx.StaticText(panel, label=format_number(length[net]))
+                    self.lb_res[row] = wx.StaticText(panel, label=format_number(res[net]))
+                    self.lb_ind[row] = wx.StaticText(panel, label=format_number(ind[net]))
+                    self.lb_pwr[row] = wx.StaticText(panel, label=format_number(pwr_loss[net]))
+                    self.lb_vdo[row] = wx.StaticText(panel, label=format_number(voltage_loss[net]))
+                    self.lb_max[row] = wx.StaticText(panel, label=format_number(max_current[net]))
                     self.lb_net[row].SetBackgroundColour('#cfcfcf')
                     #lb_max[row] = wx.StaticText(panel, label=str("%.2e"%([net]))
 
@@ -244,9 +245,13 @@ class TraceInfoGenerator(pcbnew.ActionPlugin):
 
                 bottom = wx.BoxSizer(wx.HORIZONTAL)
 
-                self.thickradio = wx.RadioBox(panel, wx.ID_ANY, label="Thickness [um]", choices=['35', '70'])
+                self.thickradio = wx.RadioBox(panel, wx.ID_ANY, label="Thickness [um]", choices=['18', '35', '70'])
                 self.thickradio.Bind(wx.EVT_RADIOBOX, self.update_display)
                 bottom.Add(self.thickradio, 0, wx.RIGHT, 4) #, (row, 1))
+                self.intext = wx.RadioBox(panel, wx.ID_ANY, label="Internal/External", choices=['int', 'ext'])
+                self.intext.Bind(wx.EVT_RADIOBOX, self.update_display)
+                bottom.Add(self.intext, 0, wx.RIGHT, 4)
+                # ------------------
                 close_button = wx.Button(panel, label="Close")
                 close_button.Bind(wx.EVT_BUTTON, self.on_button_close)
                 bottom.Add(close_button, 0, wx.LEFT, 4) #, (row, 6))
@@ -262,20 +267,26 @@ class TraceInfoGenerator(pcbnew.ActionPlugin):
             def update_display(self, event):
                 event.Skip()
                 if self.thickradio.GetSelection() == 0:
+                    thickness = 18e-6
+                elif self.thickradio.GetSelection() == 1:
                     thickness = 35e-6
-                else:
+                elif self.thickradio.GetSelection() == 2:
                     thickness = 70e-6
-                res, ind, pwr_loss, voltage_loss, max_current, net_names, length = traceinfo(thickness)
+                if self.intext.GetSelection() == 0:
+                    internal = True
+                else:
+                    internal = False
+                res, ind, pwr_loss, voltage_loss, max_current, net_names, length = traceinfo(thickness, internal)
                 for net in res:
                     row = self.row[net]
                     self.lb_net[row].SetLabel(str(net))
                     self.lb_name[row].SetLabel(str(net_names[net]))
-                    self.lb_len[row].SetLabel(str("%.3e" % length[net]))
-                    self.lb_res[row].SetLabel(str("%.2e" % res[net]))
-                    self.lb_ind[row].SetLabel(str("%.2e" % ind[net]))
-                    self.lb_pwr[row].SetLabel(str("%.2e" % pwr_loss[net]))
-                    self.lb_vdo[row].SetLabel(str("%.2e" % voltage_loss[net]))
-                    self.lb_max[row].SetLabel(str("%.2e" % max_current[net]))
+                    self.lb_len[row].SetLabel(format_number(length[net]))
+                    self.lb_res[row].SetLabel(format_number(res[net]))
+                    self.lb_ind[row].SetLabel(format_number(ind[net]))
+                    self.lb_pwr[row].SetLabel(format_number(pwr_loss[net]))
+                    self.lb_vdo[row].SetLabel(format_number(voltage_loss[net]))
+                    self.lb_max[row].SetLabel(format_number(max_current[net]))
 
 
             def on_button_close(self, event):
