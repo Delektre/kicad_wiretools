@@ -317,7 +317,7 @@ class HashShieldGenerator(pcbnew.ActionPlugin):
         frame.Destroy()
 
         print "Final result:"
-        print box
+        #print box
 
     def draw_outline_and_hash(self, width, layer):
         PADDING_mm = 0.0
