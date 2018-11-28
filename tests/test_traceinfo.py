@@ -1,6 +1,6 @@
 import unittest
 
-from traceinfo import *
+from traceinfo import calculate_resistance, calculate_length
 
 class Point(object):
     def __init__(self, **args):
