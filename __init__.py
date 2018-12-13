@@ -31,3 +31,10 @@ TraceInfoGenerator().register()
 
 print(" TraceInfoGenerator registration completed.")
 # -----------------------------------------------------------
+
+print("Register SimuTemp")
+
+from .simutem import SimuTemp
+SimuTemp().register()
+
+print("  SimuTemp registration complete")
