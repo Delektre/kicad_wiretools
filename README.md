@@ -1,3 +1,5 @@
+_NOTICE:  Does not work currently with Ubuntu 18.04 - there is an issue with GTK3.0_
+
 # kicad_wiretools
 Wire toolset for KiCad
 
