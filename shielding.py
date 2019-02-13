@@ -59,7 +59,7 @@ class HashShieldGenerator(pcbnew.ActionPlugin):
     def find_bounding_box(self, layerid=-1):
         """Find bounding box, defaults to EdgeCuts -layer"""
         if layerid == -1:
-            print "Fail back to default layer: " + str(DEFAULT_LAYER_SOURCE)
+            print "Fail back to default layer: {}".format(DEFAULT_LAYER_SOURCE)
             layerid = DEFAULT_LAYER_SOURCE
         else:
             print "Finding limits from layer {}".format(layerid)
